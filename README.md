@@ -9,7 +9,7 @@
 ---
 
 ## • Table of Contents
-- 🔍 [Overview](#Overview)
+- 🔍 [Overview](#overview)
 - 🚀 [Getting Started](#getting-started)
   - 📦 [Prerequisites](#prerequisites)
   - 🧰 [Installation](#installation)
