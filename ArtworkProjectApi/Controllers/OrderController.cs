@@ -23,7 +23,7 @@ namespace ArtworkProjectApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllOrders()
         {
-            var orders = await _orderService.GetAllOrdersAsync();
+            var orders = await _orderService.GetAllOrderAsync();
             return Ok(orders);
         }
     }

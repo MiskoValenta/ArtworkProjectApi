@@ -8,10 +8,10 @@ namespace ArtworkProjectApi.Services
 {
     public class ArtworkService : IArtworkService
     {
-        private readonly IArtworkRepository _repo;
+        private readonly IGenericRepository<Artwork> _repo;
         private readonly IMapper _mapper;
 
-        public ArtworkService(IArtworkRepository repo, IMapper mapper)
+        public ArtworkService(IGenericRepository<Artwork> repo, IMapper mapper)
         {
             _repo = repo;
             _mapper = mapper;
@@ -29,7 +29,7 @@ namespace ArtworkProjectApi.Services
         public async Task<ArtworkDto> CreateAsync(ArtworkDto dto)
         {
             var model = _mapper.Map<Artwork>(dto);
-            await _repo.CreateAsync(model);
+            await _repo.AddAsync(model);
             return _mapper.Map<ArtworkDto>(model);
         }
 
@@ -44,6 +44,18 @@ namespace ArtworkProjectApi.Services
         }
 
         public async Task<bool> DeleteAsync(int id)
-            => await _repo.DeleteAsync(id);
+        {
+            try
+            {
+                var entity = await _repo.GetByIdAsync(id);
+                await _repo.DeleteAsync(entity);
+                
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+            return true;
+        }
     }
 }

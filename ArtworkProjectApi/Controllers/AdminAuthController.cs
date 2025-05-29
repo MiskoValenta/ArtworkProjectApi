@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ArtworkProjectApi.DTOs;
+using ArtworkProjectApi.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ArtworkProjectApi.Controllers
 {
@@ -24,4 +26,5 @@ namespace ArtworkProjectApi.Controllers
 
             return Ok(new { token });
         }
+    }
 }

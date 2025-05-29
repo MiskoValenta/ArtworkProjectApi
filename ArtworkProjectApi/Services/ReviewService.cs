@@ -8,11 +8,11 @@ namespace ArtworkProjectApi.Services
 {
     public class ReviewService : IReviewService
     {
-        private readonly IReviewRepository _reviewRepository;
+        private readonly IGenericRepository<Review> _reviewRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<ReviewService> _logger;
 
-        public ReviewService(IReviewRepository reviewRepository, IMapper mapper, ILogger<ReviewService> logger)
+        public ReviewService(IGenericRepository<Review> reviewRepository, IMapper mapper, ILogger<ReviewService> logger)
         {
             _reviewRepository = reviewRepository;
             _mapper = mapper;
@@ -39,7 +39,17 @@ namespace ArtworkProjectApi.Services
 
         public async Task<bool> DeleteReviewAsync(int id)
         {
-            return await _reviewRepository.DeleteAsync(id);
+            var entity = await _reviewRepository.GetByIdAsync(id); // if entity = null -> return false nebo excep...
+            try
+            {
+                await _reviewRepository.DeleteAsync(entity);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // Zallogovat error
+                return false;
+            }
         }
     }
 }

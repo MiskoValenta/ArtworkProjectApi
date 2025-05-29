@@ -1,3 +1,5 @@
+using ArtworkProjectApi.Authentication;
+using ArtworkProjectApi.Authentication.Interface;
 using ArtworkProjectApi.Data;
 using ArtworkProjectApi.Repositories;
 using ArtworkProjectApi.Repositories.Interfaces;
@@ -67,12 +69,12 @@ builder.Services.AddAuthorization();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-builder.Services.AddScoped<IArtworkRepository, ArtworkRepository>();
-builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 builder.Services.AddScoped<IArtworkService, ArtworkService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IAdminAuthService, AdminAuthService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

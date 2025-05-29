@@ -8,13 +8,14 @@ using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pag
 namespace ArtworkProjectApi.Services
 {
     public class OrderService : IOrderService
+
     // Služba pro zpracování objednávek - vytváření a získávání
     {
-        private readonly IOrderRepository _orderRepository;
+        private readonly IGenericRepository<Order> _orderRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<OrderService> _logger;
         public OrderService(
-            IOrderRepository orderRepository,
+            IGenericRepository<Order> orderRepository,
             IMapper mapper,
             ILogger<OrderService> logger)
         {

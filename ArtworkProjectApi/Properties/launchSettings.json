@@ -39,3 +39,6 @@
     }
   }
 }
+// naseedovat si data -> zjistit si, jak se seedujou data do aplikace, může to být v program.cs
+// v appsettings => bool seed = true -> seedovat a naopak
+// zjednodušovat ITokenService -> celková authentikace

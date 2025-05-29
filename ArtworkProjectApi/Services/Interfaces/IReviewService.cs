@@ -4,7 +4,9 @@ namespace ArtworkProjectApi.Services.Interfaces
 {
     public interface IReviewService
     {
-        Task<IEnumerable<ReviewDto>> GetReviewsByArtworkIdAsync(int artworkId);
-        Task AddReviewAsync(ReviewDto dto);
+        Task<ReviewDto> CreateReviewAsync(ReviewDto reviewDto);
+        Task<bool> DeleteReviewAsync(int id);
+        Task<IEnumerable<ReviewDto>> GetAllReviewsAsync();
+        Task<ReviewDto?> GetReviewByIdAsync(int id);
     }
 }

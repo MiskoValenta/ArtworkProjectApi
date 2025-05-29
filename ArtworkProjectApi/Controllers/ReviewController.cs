@@ -24,7 +24,7 @@ namespace ArtworkProjectApi.Controllers
         [HttpGet("artwork/{artworkId}")]
         public async Task<ActionResult<IEnumerable<ReviewDto>>> GetReviewsForArtwork(int artworkId)
         {
-            var reviews = await _reviewService.GetReviewsByArtworkIdAsync(artworkId);
+            var reviews = await _reviewService.GetReviewByIdAsync(artworkId);
             return Ok(reviews);
         }
 
@@ -34,7 +34,7 @@ namespace ArtworkProjectApi.Controllers
         {
             try
             {
-                await _reviewService.AddReviewAsync(reviewDto);
+                await _reviewService.CreateReviewAsync(reviewDto);
                 return Ok(new { message = "Review added successfully." });
             }
             catch (Exception ex)
