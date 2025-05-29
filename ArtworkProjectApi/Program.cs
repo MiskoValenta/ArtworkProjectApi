@@ -12,7 +12,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // ===========================
-// Naètení konfigurace z appsettings.json
+// NaÄtenÃ­ konfigurace z appsettings.json
 // ===========================
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 string secretKey = jwtSettings.GetValue<string>("SecretKey");
