@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace ArtworkProjectApi.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class Innit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,8 +20,7 @@ namespace ArtworkProjectApi.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PasswordHash = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
-                    PasswordSalt = table.Column<byte[]>(type: "varbinary(max)", nullable: false)
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -105,6 +106,32 @@ namespace ArtworkProjectApi.Migrations
                         principalTable: "Artworks",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Admins",
+                columns: new[] { "Id", "Password", "Username" },
+                values: new object[] { 1, "password123", "admin" });
+
+            migrationBuilder.InsertData(
+                table: "Genre",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Abstrakce" },
+                    { 2, "Design Decor Art" },
+                    { 3, "Krajiny" },
+                    { 4, "Motiv" },
+                    { 5, "Zvířata" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Artworks",
+                columns: new[] { "Id", "Description", "GenreId", "ImageUrl", "Price", "Title" },
+                values: new object[,]
+                {
+                    { 1, "Krásný obraz slunečnic v poli", 1, "https://example.com/images/slunecnice.jpg", 1500.00m, "Slunečnice" },
+                    { 2, "Temná krajina pod hvězdnou oblohou.", 2, "https://example.com/images/nocni_krajina.jpg", 2300.00m, "Noční krajina" }
                 });
 
             migrationBuilder.CreateIndex(

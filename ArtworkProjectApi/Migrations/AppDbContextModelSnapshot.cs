@@ -30,13 +30,9 @@ namespace ArtworkProjectApi.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<byte[]>("PasswordHash")
+                    b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<byte[]>("PasswordSalt")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -45,6 +41,14 @@ namespace ArtworkProjectApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Admins");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Password = "password123",
+                            Username = "admin"
+                        });
                 });
 
             modelBuilder.Entity("ArtworkProjectApi.Models.Artwork", b =>
@@ -78,6 +82,26 @@ namespace ArtworkProjectApi.Migrations
                     b.HasIndex("GenreId");
 
                     b.ToTable("Artworks");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Krásný obraz slunečnic v poli",
+                            GenreId = 1,
+                            ImageUrl = "https://example.com/images/slunecnice.jpg",
+                            Price = 1500.00m,
+                            Title = "Slunečnice"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Temná krajina pod hvězdnou oblohou.",
+                            GenreId = 2,
+                            ImageUrl = "https://example.com/images/nocni_krajina.jpg",
+                            Price = 2300.00m,
+                            Title = "Noční krajina"
+                        });
                 });
 
             modelBuilder.Entity("ArtworkProjectApi.Models.Genre", b =>
@@ -95,6 +119,33 @@ namespace ArtworkProjectApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Genre");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Abstrakce"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Design Decor Art"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Krajiny"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Motiv"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Zvířata"
+                        });
                 });
 
             modelBuilder.Entity("ArtworkProjectApi.Models.Order", b =>

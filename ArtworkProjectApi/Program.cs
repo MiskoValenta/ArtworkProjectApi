@@ -1,6 +1,7 @@
 using ArtworkProjectApi.Authentication;
 using ArtworkProjectApi.Authentication.Interface;
 using ArtworkProjectApi.Data;
+using ArtworkProjectApi.Models;
 using ArtworkProjectApi.Repositories;
 using ArtworkProjectApi.Repositories.Interfaces;
 using ArtworkProjectApi.Services;
@@ -8,21 +9,20 @@ using ArtworkProjectApi.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Protocols.WSIdentity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ===========================
-// Načtení konfigurace z appsettings.json
+// Load and Bind JwtSettings from appsettings.json
 // ===========================
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-string secretKey = jwtSettings.GetValue<string>("SecretKey");
-string issuer = jwtSettings.GetValue<string>("Issuer");
-string audience = jwtSettings.GetValue<string>("Audience");
+builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JwtSettings"));
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JWTSettings>();
 
 // ===========================
-// DbContext + EF
+// Add DbContext
 // ===========================
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -30,7 +30,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 // ===========================
-// Identity
+// Add Identity
 // ===========================
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
 {
@@ -44,7 +44,7 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
 .AddDefaultTokenProviders();
 
 // ===========================
-// JWT Bearer autentizace
+// JWT Authentication
 // ===========================
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -55,9 +55,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = issuer,
-            ValidAudience = audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
         };
     });
 
@@ -68,14 +68,17 @@ builder.Services.AddAuthorization();
 // ===========================
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+// Repositories
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
+// Services
 builder.Services.AddScoped<IArtworkService, ArtworkService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAdminAuthService, AdminAuthService>();
-builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ITokenService, TokenGenerator>();// -> asi se nevyužívá? nebo nevím proč to pyští 
 
+// Controllers & Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -83,7 +86,54 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // ===========================
-// Middlewary
+// SEEDING TEST ADMINA (POUZE PRO VÝVOJ)
+// Pokud tento projekt půjde do produkce,
+// ❌ ODSTRAŇ TUTO ČÁST KÓDU NEBO ji ZABLOKUJ! ❌
+// ===========================
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+
+    if (!dbContext.Admins.Any())
+    {
+        dbContext.Admins.Add(new Admin
+        {
+            Id = 1,
+            Username = "admin",
+            Password = "password123" // ⚠️ Pouze pro testování – není hashováno!
+        });
+    }
+
+    if (!dbContext.Artworks.Any())
+    {
+        dbContext.Artworks.AddRange(
+            new Artwork
+            {
+                Id = 1,
+                Title = "Slunečnice",
+                Description = "Krásný obraz slunečnic v poli.",
+                Price = 1500.00m,
+                ImageUrl = "https://example.com/images/slunecnice.jpg",
+                GenreId = 1
+            },
+            new Artwork
+            {
+                Id = 2,
+                Title = "Noční krajina",
+                Description = "Temná krajina pod hvězdnou oblohou.",
+                Price = 2300.00m,
+                ImageUrl = "https://example.com/images/nocni_krajina.jpg",
+                GenreId = 2
+            }
+        );
+    }
+
+    dbContext.SaveChanges();
+}
+
+// ===========================
+// Middleware
 // ===========================
 if (app.Environment.IsDevelopment())
 {
@@ -92,7 +142,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
