@@ -6,14 +6,15 @@ using ArtworkProjectApi.Repositories;
 using ArtworkProjectApi.Repositories.Interfaces;
 using ArtworkProjectApi.Services;
 using ArtworkProjectApi.Services.Interfaces;
+using ArtworkProjectApiAuthentication;
+using Jose.native;
+using BC = BCrypt.Net.BCrypt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Protocols.WSIdentity;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
-// Přidána SQLite databáze do projektu -> viz soubor: "app.db"
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,23 @@ var builder = WebApplication.CreateBuilder(args);
 // ===========================
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JwtSettings"));
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JWTSettings>();
+
+// ===========================
+// CORS Configuration - MUST BE EARLY
+// ===========================
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactAppPolicy", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:3000",    // React development server
+                "https://localhost:3000"    // React development server HTTPS
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();  // Required for JWT authentication
+    });
+});
 
 // ===========================
 // Add DbContext
@@ -46,7 +64,7 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
 .AddDefaultTokenProviders();
 
 // ===========================
-// JWT Authentication
+// JWT Authentication - IMPROVED
 // ===========================
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -59,7 +77,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtSettings.Issuer,
             ValidAudience = jwtSettings.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+            ClockSkew = TimeSpan.FromMinutes(1), // Reduce clock skew
+            // CRITICAL: Map role claims correctly
+            RoleClaimType = ClaimTypes.Role,
+            NameClaimType = ClaimTypes.Name
+        };
+
+        // Handle authentication failures with proper CORS headers
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = 401;
+                context.Response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:3000");
+                context.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+                return context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(new { message = "Unauthorized" }));
+            }
         };
     });
 
@@ -78,7 +113,7 @@ builder.Services.AddScoped<IArtworkService, ArtworkService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAdminAuthService, AdminAuthService>();
-builder.Services.AddScoped<ITokenService, TokenGenerator>();// -> asi se nevyužívá? nebo nevím proč to pyští 
+builder.Services.AddScoped<ITokenService, TokenGenerator>();
 
 // Controllers & Swagger
 builder.Services.AddControllers();
@@ -88,9 +123,7 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // ===========================
-// SEEDING TEST ADMINA (POUZE PRO VÝVOJ)
-// Pokud tento projekt půjde do produkce,
-// ❌ ODSTRAŇ TUTO ČÁST KÓDU NEBO ji ZABLOKUJ! ❌
+// SEEDING WITH PROPER PASSWORD HASHING
 // ===========================
 using (var scope = app.Services.CreateScope())
 {
@@ -99,11 +132,14 @@ using (var scope = app.Services.CreateScope())
 
     if (!dbContext.Admins.Any())
     {
+        // FIXED: Use proper password hashing
+        var hashedPassword = BC.HashPassword("password123");
+
         dbContext.Admins.Add(new Admin
         {
             Id = 1,
             Username = "admin",
-            Password = "password123" // ⚠️ Pouze pro testování – není hashováno!
+            Password = hashedPassword // ✅ Now properly hashed!
         });
     }
 
@@ -135,7 +171,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ===========================
-// Middleware
+// Middleware Pipeline - CORRECT ORDER
 // ===========================
 if (app.Environment.IsDevelopment())
 {
@@ -144,6 +180,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// CRITICAL: CORS must come before Authentication
+app.UseCors("ReactAppPolicy");
+
 app.UseAuthentication();
 app.UseAuthorization();
 

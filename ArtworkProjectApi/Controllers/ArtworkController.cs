@@ -1,4 +1,5 @@
-﻿using ArtworkProjectApi.DTOs;
+﻿
+using ArtworkProjectApi.DTOs;
 using ArtworkProjectApi.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -43,7 +44,7 @@ namespace ArtworkProjectApi.Controllers
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
-        // PUT: api/artwork/{id}
+        // PUT: store/artwork/{id}
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromBody] ArtworkDto dto)

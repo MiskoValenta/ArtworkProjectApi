@@ -45,7 +45,7 @@ namespace ArtworkProjectApi.Services
                 await _reviewRepository.DeleteAsync(entity);
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Zallogovat error
                 return false;

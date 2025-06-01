@@ -51,7 +51,7 @@ namespace ArtworkProjectApi.Services
                 await _repo.DeleteAsync(entity);
                 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
