@@ -13,6 +13,7 @@ using Microsoft.IdentityModel.Protocols.WSIdentity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ===========================
@@ -26,7 +27,7 @@ var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JWTSetting
 // ===========================
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
+    options.UseSqlite(builder.Configuration.GetConnectionString("Default"));
 });
 
 // ===========================
