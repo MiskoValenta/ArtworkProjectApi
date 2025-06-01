@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Protocols.WSIdentity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+// Přidána SQLite databáze do projektu -> viz soubor: "app.db"
 
 
 var builder = WebApplication.CreateBuilder(args);
