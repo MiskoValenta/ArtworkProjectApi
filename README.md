@@ -79,8 +79,8 @@ Run the application locally with:
 dotnet run
 ```
 The API will be accessible at: 
-- **https://localhost:7131**
-- **http://localhost:5263**  
+- **https://localhost:7193**
+- **http://localhost:5064**  
   -> Use tools like Postman or Swagger (if integrated) to test the endpoints.
 
 ---
